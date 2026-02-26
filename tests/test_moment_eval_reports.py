@@ -18,9 +18,12 @@ def _compute_stats(path: Path, threshold: float) -> dict:
     return compute_moment2vec_stats(m2v, threshold=threshold)
 
 
+@pytest.mark.skipif(
+    not Path("artifacts/moment_eval_report.json").exists(),
+    reason="artifacts not present (standalone install)",
+)
 def test_instacart_eval_report_matches_artifact():
     report_path = Path("artifacts/moment_eval_report.json")
-    assert report_path.exists()
 
     report = _load_report(report_path)
     candidate_path = Path(report["candidate"]["path"])
@@ -40,9 +43,12 @@ def test_instacart_eval_report_matches_artifact():
     )
 
 
+@pytest.mark.skipif(
+    not Path("artifacts/tafeng_eval_report.json").exists(),
+    reason="artifacts not present (standalone install)",
+)
 def test_tafeng_eval_report_matches_artifact():
     report_path = Path("artifacts/tafeng_eval_report.json")
-    assert report_path.exists()
 
     report = _load_report(report_path)
     candidate_path = Path(report["candidate"]["path"])
@@ -62,9 +68,12 @@ def test_tafeng_eval_report_matches_artifact():
     )
 
 
+@pytest.mark.skipif(
+    not Path("artifacts/hm_eval_report.json").exists(),
+    reason="artifacts not present (standalone install)",
+)
 def test_hm_eval_report_matches_artifact():
     report_path = Path("artifacts/hm_eval_report.json")
-    assert report_path.exists()
 
     report = _load_report(report_path)
     candidate_path = Path(report["candidate"]["path"])

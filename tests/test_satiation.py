@@ -13,8 +13,8 @@ from mosaic.satiation import (
 
 def test_compute_moment_fill_empty():
     """Empty cart returns zeros."""
-    fill = compute_moment_fill([])
-    assert fill.shape == (8,)  # default K
+    fill = compute_moment_fill([], K=8)
+    assert fill.shape == (8,)
     assert np.allclose(fill, 0)
 
 

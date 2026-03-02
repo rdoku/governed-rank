@@ -8,7 +8,7 @@ Ready to copy-paste. Adjust links once the GitHub repo and blog post are live.
 
 **Title:** governed-rank: Steer any ranked list toward policy objectives without breaking accuracy
 
-**URL:** https://github.com/PatternaAi/governed-rank
+**URL:** https://github.com/rdoku/governed-rank
 
 **Comment:**
 
@@ -38,7 +38,7 @@ This is the injection problem — and it happens in every domain.
 
 We built governed-rank to fix it. Three lines of Python. Pareto-optimal reranking. Full audit trail.
 
-github.com/PatternaAi/governed-rank
+github.com/rdoku/governed-rank
 
 **Tweet 2:**
 How it works:
@@ -82,7 +82,7 @@ result = govern(base_scores, steering_scores, budget=0.3)
 
 **What it's not:** This isn't a model or a framework. It's a single function that wraps around any existing ranker. 99 KB wheel, no heavy dependencies.
 
-Apache 2.0: https://github.com/PatternaAi/governed-rank
+Apache 2.0: https://github.com/rdoku/governed-rank
 
 Paper with proofs forthcoming — happy to discuss the math.
 
@@ -114,6 +114,6 @@ result = govern(base_scores, steering_scores, budget=0.3)
 
 If your team is wrestling with the accuracy-vs-policy tradeoff in ranked systems, I'd love to hear how it works for you.
 
-GitHub: https://github.com/PatternaAi/governed-rank
+GitHub: https://github.com/rdoku/governed-rank
 
 #MachineLearning #AI #OpenSource #Fairness #ContentSafety #Ranking

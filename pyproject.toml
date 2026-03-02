@@ -49,9 +49,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/PatternaAi/governed-rank"
-Repository = "https://github.com/PatternaAi/governed-rank"
-Documentation = "https://github.com/PatternaAi/governed-rank#readme"
+Homepage = "https://github.com/rdoku/governed-rank"
+Repository = "https://github.com/rdoku/governed-rank"
+Documentation = "https://github.com/rdoku/governed-rank#readme"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mosaic"]

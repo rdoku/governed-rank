@@ -142,7 +142,7 @@ pip install governed-rank[viz]     # matplotlib + pandas for Pareto plots
 pip install governed-rank[dev]     # pytest + dev tools
 ```
 
-Source and docs: [github.com/PatternaAi/governed-rank](https://github.com/PatternaAi/governed-rank)
+Source and docs: [github.com/rdoku/governed-rank](https://github.com/rdoku/governed-rank)
 
 ## What's Next
 
@@ -156,4 +156,4 @@ If your team is wrestling with the accuracy-policy tradeoff in ranked systems, g
 
 ---
 
-*Built by [PatternaAi](https://github.com/PatternaAi). Questions or feedback: ronald.doku@gmail.com*
+*Built by [PatternaAi](https://github.com/rdoku). Questions or feedback: ronald.doku@gmail.com*

@@ -31,3 +31,8 @@ ENV/
 *~
 
 models/adressa_processed.pkl
+
+# Project-specific exclusions
+.DS_Store
+results/
+mosaic_data_tests/

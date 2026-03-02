@@ -1,125 +1,154 @@
-# MOSAIC (governed-rank)
+# governed-rank
 
-**Margin-Orthogonal Mission Steering for Accuracy-Preserving, Controllable Recommendations**
+**Governed reranking for any domain — steer ranked lists toward policy objectives without breaking accuracy.**
 
-## Overview
+## The Problem
 
-MOSAIC is a recommendation algorithm that treats shopping missions as a **control layer**, not an accuracy layer. The base ranker owns predictive relevance; missions provide interpretable steering, diversity/satiation, and operator controls—without regressing accuracy.
+You have a ranked list (search results, recommendations, content feed) and a policy objective (reduce toxicity, increase fairness, promote margin). Naively injecting policy scores breaks your base ranker's accuracy. You need a principled way to steer without regressing.
 
-### Key Insight
-
-Naively adding mission scores to a strong collaborative ranker hurts accuracy (e.g., -4.87% Recall@10 in our experiments). MOSAIC solves this with two innovations:
-
-1. **Interference Removal (Orthogonalization):** Remove the component of steering utility that aligns with the base score direction
-2. **Confidence-Preserving Constraints:** Protect only confident base decisions using a calibrated gap-to-confidence mapping
-
-## Installation
-
-```bash
-pip install -e .
-```
-
-Or from PyPI (once published):
+## Install
 
 ```bash
 pip install governed-rank
 ```
 
-## Algorithm Stages
-
-```
-A) Moment Activation     -> p(m | context)
-B) Candidate Recall      -> accuracy pool + moment pool + exploration
-C) Base Scoring          -> s_i = S_base(i | ctx)
-D) Control Utility       -> u_i = lambda_m * align_i * sat_i + policy_i
-E) Orthogonalization     -> u_perp = u - proj(u onto s)
-F) Protected Edges       -> where gap_to_conf(delta) >= rho
-G) Constrained Projection -> isotonic regression on protected runs
-```
-
 ## Quick Start
 
 ```python
+from mosaic import govern
+
+result = govern(
+    base_scores={"doc1": 0.9, "doc2": 0.8, "doc3": 0.7, "doc4": 0.6, "doc5": 0.5},
+    steering_scores={"doc1": -0.5, "doc2": 0.3, "doc3": 0.8, "doc4": 0.1, "doc5": 0.6},
+    budget=0.3,
+)
+
+print(result.ranked_items)   # reranked order
+print(result.receipts)       # per-item audit trail
+```
+
+`budget` controls how much of the original ordering is protected. `0.3` means the top 30% most confident base decisions are locked — steering can only move items around where the base ranker isn't sure.
+
+## Domain Examples
+
+### Content Moderation — demote toxic content without hurting engagement
+
+```python
+result = govern(
+    base_scores=engagement_scores,       # relevance / predicted engagement
+    steering_scores=toxicity_penalties,   # negative = toxic, from your classifier
+    budget=0.3,
+)
+# Toxic items drop in ranking. Engagement-critical ordering preserved.
+```
+
+### Fairness — boost underrepresented groups without sacrificing quality
+
+```python
+result = govern(
+    base_scores=quality_scores,          # hiring model / credit scores / quality
+    steering_scores=fairness_boosts,     # positive for underrepresented candidates
+    budget=0.3,
+)
+# Fair reranking with auditable receipts. Adverse impact ratio 0.963 on COMPAS.
+```
+
+### RAG Safety — steer retrieval toward grounded, policy-safe documents
+
+```python
+result = govern(
+    base_scores=retrieval_scores,        # embedding similarity from your vector DB
+    steering_scores=groundedness_scores,  # factuality / policy compliance signal
+    budget=0.5,
+)
+# Grounded docs promoted. Top retrieval results still relevant.
+```
+
+## How It Works
+
+Three steps, fully automatic:
+
+```
+1. Orthogonalize    Remove the component of your policy signal that correlates
+                    with the base ranker (so steering can't accidentally hurt accuracy)
+
+2. Protect edges    Lock the most confident base ordering decisions (controlled by budget)
+
+3. Project          Isotonic regression on the remaining items — maximize policy
+                    effect while respecting constraints
+```
+
+Mathematically: the steering signal is projected into the null space of the base score direction, then a constrained isotonic projection enforces protected ordering decisions. The result is Pareto-optimal — you cannot get more policy effect without giving up more accuracy.
+
+## Full API — `MOSAICScorer`
+
+For production pipelines with calibrated confidence, moment activation, satiation, and per-item receipts:
+
+```python
 from mosaic import MOSAICScorer, MOSAICConfig, CalibrationResult
-import numpy as np
 
-# Load moment affinities (item -> moment)
-A = np.load("models/moment2vec.npy")
-
-# Load calibration (or None for fallback mode)
 calibration = CalibrationResult.load("models/gap_calibration.json")
 
-# Create scorer
 scorer = MOSAICScorer(
-    moment_affinities=A,
+    moment_affinities=moment2vec,        # (n_items, K) affinity matrix
     calibration=calibration,
     config=MOSAICConfig(
         lambda_m=0.03,
         rho=0.90,
+        protection_mode="budget",
+        budget_pct=0.30,
     ),
 )
 
-# Rank candidates
 result = scorer.rank(
     candidates=[1, 2, 3, 4, 5],
     base_scores={1: 0.9, 2: 0.8, 3: 0.7, 4: 0.6, 5: 0.5},
-    activation_p=np.array([0.7, 0.1, 0.1, 0.05, 0.05]),
+    activation_p=activation_probabilities,
     activation_confidence="high",
-    cart_items=[10, 20],
 )
 
 print(result.ranked_items)
-print(f"Protected {result.n_protected_edges} edges, {result.n_active_constraints} active")
+print(result.receipts)           # MOSAICReceipt per item
+print(result.n_protected_edges)
 ```
 
-## Project Structure
+## Discovery Engine
 
-```
-mosaic/
-├── src/mosaic/                    # Installable Python package
-│   ├── __init__.py                # Public API exports
-│   ├── mosaic_scorer.py           # Full pipeline orchestration
-│   ├── orthogonalization.py       # Score-space interference removal
-│   ├── gap_calibration.py         # Learn gap->confidence mapping
-│   ├── isotonic_projection.py     # PAV on protected runs
-│   ├── activation.py              # Hybrid moment activation pipeline
-│   ├── satiation.py               # Diminishing returns
-│   ├── rank_protection.py         # Head protection
-│   ├── steering_guardrails.py     # Policy safety
-│   ├── moment_nmf.py              # NMF moment discovery
-│   ├── lens_ads.py                # LENS ad insertion
-│   ├── discovery/                 # Objective discovery engine
-│   │   ├── api.py
-│   │   ├── engine.py
-│   │   └── models.py
-│   └── _compat/                   # Patterna-dependent modules
-│       ├── loaders.py
-│       └── state.py
-├── scripts/                       # Experiment and evaluation scripts
-├── tests/                         # Unit tests
-├── models/                        # Result JSON files
-├── paper/                         # LaTeX sources, figures
-├── docs/                          # Patent, algorithm docs
-├── pyproject.toml                 # Package configuration
-├── requirements.txt               # Pinned dependencies
-├── LICENSE                        # Apache 2.0
-└── CHANGELOG.md
+Find which policies are naturally aligned with your users before deploying:
+
+```python
+from mosaic.discovery import DiscoveryEngine
+
+engine = DiscoveryEngine()
+report = engine.discover(sessions, catalog)
+
+for opp in report.top_opportunities(5):
+    print(f"{opp.category}: {opp.preference_lift:.1f}x lift — {opp.action.value}")
 ```
 
-## Evaluation Results (Ta Feng)
+## Validated On
 
-**Dataset:** Ta Feng (Taiwan grocery), 11,208 items, 99,485 baskets
-**Evaluation:** 500 baskets, hold-out prediction task
-**Baseline:** Item-CF (co-occurrence similarity)
+17 datasets across 6 domains:
 
-| Method | Recall@10 | NDCG@10 | Displaced | Alignment |
-|--------|-----------|---------|-----------|-----------|
-| Item-CF (baseline) | 16.20% | 13.94% | 0.00 | 0.207 |
-| Naive (base + moment) | 16.20% | 13.91% | 0.39 | 0.210 |
-| Rank Protected (Patterna v1) | 15.95% | 13.84% | 0.69 | 0.209 |
-| **MOSAIC** | **16.20%** | 13.91% | 0.39 | 0.210 |
+| Domain | Datasets | Key Metric |
+|--------|----------|------------|
+| Recommendations | Ta Feng, Instacart, RetailRocket, Criteo, MovieLens, Amazon Reviews, Yelp | 0.890 stability @ 0.344 exposure |
+| Fairness | COMPAS, Adult Income, German Credit | adverse_impact_ratio = 0.963 |
+| Healthcare | MIMIC-IV, SynPUF | 71.6% HIGH tier, 5.0x NMF lift |
+| Content / NLP | AG News, BBC News, Mind News | cross-domain discovery |
+| Fraud | IEEE-CIS Fraud | policy-steered detection |
+| Cookieless Targeting | RetailRocket, Criteo | 4.65x CVR lift |
 
-**Key Finding:** MOSAIC preserves accuracy (matches Item-CF baseline at 16.20% Recall@10) while providing interpretable mission steering and operator controls.
+## Core Modules
+
+| Module | Purpose |
+|--------|---------|
+| `mosaic.govern` | Simple `govern()` entry point |
+| `mosaic.mosaic_scorer` | Full pipeline with moments, calibration, receipts |
+| `mosaic.orthogonalization` | Score-space interference removal |
+| `mosaic.gap_calibration` | Gap → confidence mapping, edge protection |
+| `mosaic.isotonic_projection` | Constrained isotonic regression (PAV) |
+| `mosaic.discovery` | Objective discovery from behavioral data |
 
 ## License
 

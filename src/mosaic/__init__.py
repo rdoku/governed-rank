@@ -6,8 +6,7 @@ merchandising, and any domain where you need governed reranking.
 """
 
 from .govern import govern, GovernResult, GovernReceipt
-from .mosaic_scorer import MOSAICScorer, MOSAICConfig, MOSAICResult, MOSAICReceipt
-from .orthogonalization import orthogonalize_against_base, OrthogonalizationResult
+from .orthogonalization import orthogonalize_against_base, OrthogonalizationResult, compute_target_scores
 from .gap_calibration import (
     CalibrationResult,
     CalibrationConfig,
@@ -15,41 +14,27 @@ from .gap_calibration import (
     get_protected_edges,
     get_protected_edges_by_budget,
 )
-from .isotonic_projection import isotonic_project_on_runs, compute_final_ranking
-from .discovery import (
-    DiscoveryEngine,
-    DiscoveryConfig,
-    DiscoveredObjective,
-    DiscoveryReport,
-    ActionType,
-)
+from .isotonic_projection import isotonic_project_on_runs, compute_final_ranking, ProjectionResult
 
 __all__ = [
-    # Simple API
+    # Entry point
     "govern",
     "GovernResult",
     "GovernReceipt",
-    # Full pipeline
-    "MOSAICScorer",
-    "MOSAICConfig",
-    "MOSAICResult",
-    "MOSAICReceipt",
-    # Core stages
+    # Orthogonalization
     "orthogonalize_against_base",
     "OrthogonalizationResult",
+    "compute_target_scores",
+    # Gap calibration
     "CalibrationResult",
     "CalibrationConfig",
     "learn_gap_calibration",
     "get_protected_edges",
     "get_protected_edges_by_budget",
+    # Isotonic projection
     "isotonic_project_on_runs",
     "compute_final_ranking",
-    # Discovery
-    "DiscoveryEngine",
-    "DiscoveryConfig",
-    "DiscoveredObjective",
-    "DiscoveryReport",
-    "ActionType",
+    "ProjectionResult",
 ]
 
 __version__ = "0.1.0"

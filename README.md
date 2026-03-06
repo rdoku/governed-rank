@@ -80,52 +80,6 @@ Three steps, fully automatic:
 
 Mathematically: the steering signal is projected into the null space of the base score direction, then a constrained isotonic projection enforces protected ordering decisions. The result is Pareto-optimal — you cannot get more policy effect without giving up more accuracy.
 
-## Full API — `MOSAICScorer`
-
-For production pipelines with calibrated confidence, moment activation, satiation, and per-item receipts:
-
-```python
-from mosaic import MOSAICScorer, MOSAICConfig, CalibrationResult
-
-calibration = CalibrationResult.load("models/gap_calibration.json")
-
-scorer = MOSAICScorer(
-    moment_affinities=moment2vec,        # (n_items, K) affinity matrix
-    calibration=calibration,
-    config=MOSAICConfig(
-        lambda_m=0.03,
-        rho=0.90,
-        protection_mode="budget",
-        budget_pct=0.30,
-    ),
-)
-
-result = scorer.rank(
-    candidates=[1, 2, 3, 4, 5],
-    base_scores={1: 0.9, 2: 0.8, 3: 0.7, 4: 0.6, 5: 0.5},
-    activation_p=activation_probabilities,
-    activation_confidence="high",
-)
-
-print(result.ranked_items)
-print(result.receipts)           # MOSAICReceipt per item
-print(result.n_protected_edges)
-```
-
-## Discovery Engine
-
-Find which policies are naturally aligned with your users before deploying:
-
-```python
-from mosaic.discovery import DiscoveryEngine
-
-engine = DiscoveryEngine()
-report = engine.discover(sessions, catalog)
-
-for opp in report.top_opportunities(5):
-    print(f"{opp.category}: {opp.preference_lift:.1f}x lift — {opp.action.value}")
-```
-
 ## Validated On
 
 17 datasets across 6 domains:
@@ -134,8 +88,8 @@ for opp in report.top_opportunities(5):
 |--------|----------|------------|
 | Recommendations | Ta Feng, Instacart, RetailRocket, Criteo, MovieLens, Amazon Reviews, Yelp | 0.890 stability @ 0.344 exposure |
 | Fairness | COMPAS, Adult Income, German Credit | adverse_impact_ratio = 0.963 |
-| Healthcare | MIMIC-IV, SynPUF | 71.6% HIGH tier, 5.0x NMF lift |
-| Content / NLP | AG News, BBC News, Mind News | cross-domain discovery |
+| Healthcare | MIMIC-IV, SynPUF | 71.6% HIGH tier |
+| Content / NLP | AG News, BBC News, Mind News | cross-domain steering |
 | Fraud | IEEE-CIS Fraud | policy-steered detection |
 | Cookieless Targeting | RetailRocket, Criteo | 4.65x CVR lift |
 
@@ -143,12 +97,10 @@ for opp in report.top_opportunities(5):
 
 | Module | Purpose |
 |--------|---------|
-| `mosaic.govern` | Simple `govern()` entry point |
-| `mosaic.mosaic_scorer` | Full pipeline with moments, calibration, receipts |
+| `mosaic.govern` | `govern()` entry point — orthogonalize, protect, project |
 | `mosaic.orthogonalization` | Score-space interference removal |
 | `mosaic.gap_calibration` | Gap → confidence mapping, edge protection |
 | `mosaic.isotonic_projection` | Constrained isotonic regression (PAV) |
-| `mosaic.discovery` | Objective discovery from behavioral data |
 
 ## License
 

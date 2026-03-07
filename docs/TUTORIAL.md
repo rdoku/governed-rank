@@ -104,6 +104,7 @@ The best way to see `govern()` in action is to run the included notebooks. Each 
 | `notebooks/fairness_compas.ipynb` | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
 | `notebooks/content_moderation.ipynb` | Content feeds | Toxicity reduction with quality preservation |
 | `notebooks/fraud_detection.ipynb` | Fraud review queues | 4.1x fraud value improvement |
+| `notebooks/rag_safety.ipynb` | RAG safety | Injected docs removed from citations |
 | `notebooks/objective_discovery.ipynb` | Policy selection | Which objectives align with users |
 
 ---
@@ -423,6 +424,10 @@ Reduces racial bias in recidivism risk rankings. Steers a COMPAS-derived ranking
 ### Fraud Detection (`notebooks/fraud_detection.ipynb`)
 
 300 simulated transactions with a log-normal amount distribution. Steers a fraud review queue toward high-value suspicious transactions. MOSAIC captures 4.1x more fraud value in the top-20 and 10.4x more in the auto-block tier — at the same precision. Fraud slipping through the allow tier drops 81%.
+
+### RAG Safety (`notebooks/rag_safety.ipynb`)
+
+600 synthetic documents (500 legitimate + 100 with prompt injection patterns). Attackers craft high-relevance malicious docs (PoisonedRAG threat model). PRRGate-style risk scoring detects injection patterns using keyword family quorum. MOSAIC eliminates all injected docs from the top-3 citation window and top-10 context window while retaining more quality than naive penalty subtraction. Includes tiered gating (CITE / INCLUDE / EXCLUDE), per-document audit receipts, and a budget sweep with dual-axis visualization.
 
 ### Objective Discovery (`notebooks/objective_discovery.ipynb`)
 

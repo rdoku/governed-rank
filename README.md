@@ -89,6 +89,7 @@ Reproducible results from the included notebooks:
 | [`fairness_compas.ipynb`](notebooks/fairness_compas.ipynb) | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
 | [`content_moderation.ipynb`](notebooks/content_moderation.ipynb) | Content feeds | Toxicity reduction with smooth budget tradeoff |
 | [`fraud_detection.ipynb`](notebooks/fraud_detection.ipynb) | Fraud review queues | 4.1x fraud value captured, 81% less slippage |
+| [`rag_safety.ipynb`](notebooks/rag_safety.ipynb) | RAG safety | Injected docs removed from top-3, quality 65% |
 | [`objective_discovery.ipynb`](notebooks/objective_discovery.ipynb) | Policy selection | Quality steering → engagement AND diversity |
 
 Run any notebook to verify. All use synthetic or public data — no external dependencies.

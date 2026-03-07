@@ -534,6 +534,18 @@ MOSAIC captures 10.4x more fraud value in the BLOCK tier at the same precision. 
 
 The budget sweep shows AIR stable above 0.80 from budget 0.00–0.70, with quality increasing monotonically.
 
+### RAG Safety (`notebooks/rag_safety.ipynb`)
+
+600 synthetic documents (500 legitimate + 100 with prompt injection patterns). Injected docs have adversarially high relevance (PoisonedRAG threat model) and are scored by PRRGate-style pattern detection.
+
+| Method | Injected in top-3 | Injected in top-10 | Quality |
+|--------|-------------------|-------------------|---------|
+| Base | 2 | 8 | 100.0% |
+| Naive (subtract penalty) | 0 | 0 | 61.1% |
+| MOSAIC (budget=0.30) | 0 | 0 | 65.3% |
+
+MOSAIC eliminates injected documents from the citation window (top-3) while retaining 4.2 percentage points more quality than naive. Tiered gating (CITE / INCLUDE / EXCLUDE) achieves 100% precision in the CITE tier.
+
 ### Objective Discovery (`notebooks/objective_discovery.ipynb`)
 
 500 synthetic articles across 7 categories with 10,000 simulated reads. Tests 7 candidate policies to discover which objectives align with user preferences.

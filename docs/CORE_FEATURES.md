@@ -521,7 +521,7 @@ At budget=0.00 (maximum steering), MOSAIC matches naive's toxicity reduction wit
 
 MOSAIC captures 10.4x more fraud value in the BLOCK tier at the same precision. Fraud slipping through ALLOW: Base $4,088, MOSAIC $767 (81% reduction).
 
-### Fairness — COMPAS (`notebooks/demo.ipynb`)
+### Fairness — COMPAS (`notebooks/fairness_compas.ipynb`)
 
 100 defendants sampled from the ProPublica COMPAS dataset (66 African-American, 34 Caucasian).
 

@@ -50,7 +50,7 @@ result = govern(
     steering_scores=fairness_boosts,     # positive for underrepresented candidates
     budget=0.3,
 )
-# Fair reranking with auditable receipts. See notebooks/demo.ipynb.
+# Fair reranking with auditable receipts. See notebooks/fairness_compas.ipynb.
 ```
 
 ### RAG Safety — steer retrieval toward grounded, policy-safe documents
@@ -86,7 +86,7 @@ Reproducible results from the included notebooks:
 
 | Notebook | Domain | Key Result |
 |----------|--------|------------|
-| [`demo.ipynb`](notebooks/demo.ipynb) | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
+| [`fairness_compas.ipynb`](notebooks/fairness_compas.ipynb) | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
 | [`content_moderation.ipynb`](notebooks/content_moderation.ipynb) | Content feeds | Toxicity reduction with smooth budget tradeoff |
 | [`fraud_detection.ipynb`](notebooks/fraud_detection.ipynb) | Fraud review queues | 4.1x fraud value captured, 81% less slippage |
 | [`objective_discovery.ipynb`](notebooks/objective_discovery.ipynb) | Policy selection | Quality steering → engagement AND diversity |

@@ -101,7 +101,7 @@ The best way to see `govern()` in action is to run the included notebooks. Each 
 
 | Notebook | Domain | What it shows |
 |----------|--------|---------------|
-| `notebooks/demo.ipynb` | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
+| `notebooks/fairness_compas.ipynb` | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
 | `notebooks/content_moderation.ipynb` | Content feeds | Toxicity reduction with quality preservation |
 | `notebooks/fraud_detection.ipynb` | Fraud review queues | 4.1x fraud value improvement |
 | `notebooks/objective_discovery.ipynb` | Policy selection | Which objectives align with users |
@@ -412,7 +412,7 @@ The Pool Adjacent Violators (PAV) algorithm is a classic method from isotonic re
 
 The repository includes 4 notebooks with complete, reproducible examples. Each demonstrates a different domain and includes budget sweeps, head-to-head comparisons, and diagnostic output.
 
-### Fairness — COMPAS (`notebooks/demo.ipynb`)
+### Fairness — COMPAS (`notebooks/fairness_compas.ipynb`)
 
 Reduces racial bias in recidivism risk rankings. Steers a COMPAS-derived ranking toward demographic parity using a fairness boost signal. Adverse impact ratio improves from 0.773 to 0.916 (passing the 4/5ths rule) while retaining 95% ranking quality. Also includes a MovieLens genre-steering example and an orthogonalization walkthrough.
 

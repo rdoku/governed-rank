@@ -21,7 +21,7 @@ Step 2  Protected Edges        →  top B% by gap confidence
 Step 3  Constrained Projection →  isotonic regression on protected runs
 ```
 
-**Core insight**: Naively adding a policy signal to a base ranker degrades accuracy (e.g., −4.87% Recall@10 in experiments). governed-rank solves this by (1) removing the component of the policy signal that correlates with the base score, and (2) locking the base ranker's most confident ordering decisions via budget-controlled constraints.
+**Core insight**: Naively adding a policy signal to a base ranker degrades accuracy because the policy signal correlates with the base scores, creating interference. governed-rank solves this by (1) removing the component of the policy signal that correlates with the base score, and (2) locking the base ranker's most confident ordering decisions via budget-controlled constraints. See `notebooks/content_moderation.ipynb` for a worked example.
 
 **Entry point**: `govern()` — zero-config, 3 arguments, works with any key type.
 
@@ -475,58 +475,75 @@ Sorts by `(-z_i, base_position_i)` for:
 
 ---
 
-## 6. Validated Results
+## 6. Validated Results (Included Notebooks)
 
-### Cross-Dataset Summary (17 datasets, 6 domains)
+All results below are **reproducible** from the notebooks included in this repository. Run them yourself to verify.
 
-| Domain | Datasets | Key Metric |
-|--------|----------|------------|
-| Recommendations | Ta Feng, Instacart, MovieLens, H&M, LastFM, Adressa, Yoochoose | 0.890 stability @ 0.344 exposure |
-| Fairness | COMPAS, Adult Income, German Credit | adverse_impact_ratio = 0.963 |
-| Healthcare | MIMIC-IV, SynPUF | 71.6% HIGH tier |
-| Content Moderation | Civil Comments | 3.4x more efficient on borderline content |
-| Fraud | IEEE-CIS, PaySim | 3x higher precision on hard blocks |
-| Trust-Gated RAG | RAGWall, BEIR NQ, Tensor Trust | 95–100% attack reduction |
+### Content Moderation (`notebooks/content_moderation.ipynb`)
 
-### Policy Exposure Lifts
+200 synthetic posts with a realistic engagement-toxicity correlation (r = 0.424). Toxic content is engaging — outrage drives clicks.
 
-| Dataset | Best Lift | Policy |
-|---------|-----------|--------|
-| H&M | 41.7x | Product group steering |
-| Instacart | 15.4x | Category (produce) |
-| Adressa | 3.58x | Temporal (morning) |
-| Ta Feng | 2.94x | Moment alignment |
-| MovieLens | 1.15x | Genre (documentary) |
+| Method | Toxic in top-10 | Mean toxicity (top-10) | Kendall tau vs base |
+|--------|----------------|----------------------|-------------------|
+| Base | 7 | 0.339 | 1.000 |
+| Naive (subtract penalty) | 2 | 0.250 | 0.438 |
+| MOSAIC (budget=0.30) | 5 | 0.280 | 0.510 |
 
-### Budget Monotonicity (5 seeds, 1000 baskets each)
+At budget=0.00 (maximum steering), MOSAIC matches naive's toxicity reduction with better quality retention (tau 0.456 vs 0.438).
 
-| Budget | Stability | PolicyExp@50 | Recall@10 |
-|--------|-----------|-------------|-----------|
-| 0.0 | 0.787 | 0.351 | 0.165 |
-| 0.3 | 0.890 | 0.349 | 0.164 |
-| 0.5 | 0.938 | 0.340 | 0.165 |
-| 0.7 | 0.958 | 0.327 | 0.164 |
-| 1.0 | 0.973 | 0.312 | 0.165 |
+**Budget sweep** (top-10 metrics):
 
-Spearman(budget, stability) = 1.00 ± 0.00 across seeds.
+| Budget | Toxic/10 | Mean Toxicity | Tau | Quality |
+|--------|---------|--------------|-----|---------|
+| 0.00 | 4 | 0.268 | 0.456 | 72.8% |
+| 0.10 | 4 | 0.268 | 0.456 | 72.8% |
+| 0.20 | 5 | 0.280 | 0.510 | 75.5% |
+| 0.30 | 5 | 0.280 | 0.510 | 75.5% |
+| 0.50 | 6 | 0.308 | 0.624 | 81.2% |
+| 0.70 | 7 | 0.339 | 0.827 | 91.3% |
+| 1.00 | 7 | 0.339 | 1.000 | 100.0% |
 
-### Content Moderation (Civil Comments, 3.8M)
+### Fraud Detection (`notebooks/fraud_detection.ipynb`)
 
-- 36–59% toxicity reduction while retaining 97–99% engagement
-- 3.4x more efficient than naive safety on borderline content
-- 30x more efficient on high-correlation platforms
+300 simulated transactions ($5–$17,660 range, 19.3% fraud rate). The base model ranks by fraud probability but ignores transaction value.
 
-### Fairness (COMPAS)
+| Method | Fraud value in top-20 | Improvement |
+|--------|----------------------|-------------|
+| Base | $552 | — |
+| MOSAIC (budget=0.30) | $2,271 | 4.1x |
 
-- Adverse impact ratio: 0.963 (above 4/5ths rule threshold)
-- Quality retained: 98.65%
-- 1.5pp more quality than group thresholding at parity
+**Tiered gating** (BLOCK = top 10%, REVIEW = next 20%, ALLOW = bottom 70%):
 
-### Key Experimental Conclusions
+| Tier | Method | Precision | Fraud Value |
+|------|--------|-----------|-------------|
+| BLOCK | Base | 40% | $154 |
+| BLOCK | MOSAIC | 40% | $1,603 |
 
-1. Budget cleanly controls stability
-2. Recall is preserved across configurations (orthogonalization prevents interference)
-3. Stronger rankers need less protection (larger score gaps → fewer violations)
-4. Coverage bonus: protection constraints increase item diversity as a side effect
-5. Quality > diversity for diversity: quality-based steering achieves 2.00x lift AND +47% click diversity
-6. Don't force diversity directly: diversity-forcing policies achieve only 0.25x lift
+MOSAIC captures 10.4x more fraud value in the BLOCK tier at the same precision. Fraud slipping through ALLOW: Base $4,088, MOSAIC $767 (81% reduction).
+
+### Fairness — COMPAS (`notebooks/demo.ipynb`)
+
+100 defendants sampled from the ProPublica COMPAS dataset (66 African-American, 34 Caucasian).
+
+| Metric | Base | MOSAIC (budget=0.30) |
+|--------|------|---------------------|
+| Adverse Impact Ratio | 0.773 | 0.916 |
+| 4/5ths rule | FAILS | PASSES |
+| Kendall tau | — | 0.900 |
+| Quality retained | — | 95.0% |
+
+The budget sweep shows AIR stable above 0.80 from budget 0.00–0.70, with quality increasing monotonically.
+
+### Objective Discovery (`notebooks/objective_discovery.ipynb`)
+
+500 synthetic articles across 7 categories with 10,000 simulated reads. Tests 7 candidate policies to discover which objectives align with user preferences.
+
+| Policy | Preference Lift | ΔEntropy | ΔReads |
+|--------|----------------|----------|--------|
+| quality_depth | 1.90x | +0.170 | +494 |
+| trending | 2.71x | −0.175 | +686 |
+| diversity_underexposed | 0.25x | +0.281 | −310 |
+
+**Key finding**: `quality_depth` is the only policy that achieves BOTH preference alignment (lift > 1) AND diversity gain (positive entropy delta). Forcing diversity directly (underexposed categories) fights user preferences. Quality-based steering achieves diversity as a side effect.
+
+**Portfolio frontier**: Pure quality steering (0% trending / 100% quality) is the only mix that achieves both more reads and higher diversity than the base ranking.

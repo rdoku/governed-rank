@@ -95,6 +95,17 @@ result = govern(
 # Grounded docs surface; the most relevant results are protected.
 ```
 
+### Run the Notebooks
+
+The best way to see `govern()` in action is to run the included notebooks. Each one is a self-contained worked example with reproducible results:
+
+| Notebook | Domain | What it shows |
+|----------|--------|---------------|
+| `notebooks/demo.ipynb` | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
+| `notebooks/content_moderation.ipynb` | Content feeds | Toxicity reduction with quality preservation |
+| `notebooks/fraud_detection.ipynb` | Fraud review queues | 4.1x fraud value improvement |
+| `notebooks/objective_discovery.ipynb` | Policy selection | Which objectives align with users |
+
 ---
 
 ## Chapter 2 — Understanding Orthogonalization
@@ -119,7 +130,11 @@ When the correlation is negative, you actively break the ranking with unpredicta
 u_perp = u - (u · s / s · s) * s
 ```
 
+**The shadow metaphor**: Think of the base scores as a direction in space. The steering signal casts a "shadow" along that direction — the part of the steering that just restates what the base ranker already knows. Orthogonalization subtracts the shadow, leaving only the perpendicular remainder — the genuinely new information about how items should move.
+
 After this projection, the steering signal has **zero correlation** with the base scores. It can only move items in directions the base ranker has no opinion about.
+
+**Concrete example**: In `notebooks/content_moderation.ipynb`, engagement and toxicity correlate at r = 0.424 (toxic content is engaging). After orthogonalization, the correlation drops to ≈ 0 — the cleaned safety signal can only move posts where the engagement model is uncertain.
 
 ### Standalone Usage
 
@@ -210,6 +225,19 @@ print(f"Protected edge indices: {protected}")
 # These are 0-based indices into base_order: edge i means pair (base_order[i], base_order[i+1])
 ```
 
+### Budget in Practice: Content Moderation Example
+
+From `notebooks/content_moderation.ipynb` — the budget sweep shows a smooth tradeoff between toxicity reduction and quality retention:
+
+| Budget | Toxic in top-10 | Mean Toxicity | Quality |
+|--------|----------------|--------------|---------|
+| 0.00 | 4 | 0.268 | 72.8% |
+| 0.30 | 5 | 0.280 | 75.5% |
+| 0.50 | 6 | 0.308 | 81.2% |
+| 1.00 | 7 | 0.339 | 100.0% |
+
+No cliff, no sudden collapse — just a smooth dial from maximum steering to no change.
+
 ### Budget Guidance by Domain
 
 | Domain | Suggested Budget | Rationale |
@@ -224,6 +252,8 @@ print(f"Protected edge indices: {protected}")
 ---
 
 ## Chapter 4 — Gap Calibration
+
+> **Note**: Gap calibration is advanced usage. The `govern()` function handles edge protection automatically using raw score gaps, which works well for most use cases. You only need explicit calibration if you have historical data and want to map gaps to correctness probabilities.
 
 ### Why Raw Score Gaps Aren't Probabilities
 
@@ -378,9 +408,28 @@ The Pool Adjacent Violators (PAV) algorithm is a classic method from isotonic re
 
 ---
 
-## What's Next
+## Chapter 6 — Worked Examples (Notebooks)
+
+The repository includes 4 notebooks with complete, reproducible examples. Each demonstrates a different domain and includes budget sweeps, head-to-head comparisons, and diagnostic output.
+
+### Fairness — COMPAS (`notebooks/demo.ipynb`)
+
+Reduces racial bias in recidivism risk rankings. Steers a COMPAS-derived ranking toward demographic parity using a fairness boost signal. Adverse impact ratio improves from 0.773 to 0.916 (passing the 4/5ths rule) while retaining 95% ranking quality. Also includes a MovieLens genre-steering example and an orthogonalization walkthrough.
+
+### Content Moderation (`notebooks/content_moderation.ipynb`)
+
+200 synthetic posts with a realistic engagement-toxicity correlation (r = 0.424). Shows why naive toxicity penalties over-correct and break the ranking, while MOSAIC targets only the uncertain zone. Includes a 7-row budget sweep table demonstrating the smooth quality-safety tradeoff.
+
+### Fraud Detection (`notebooks/fraud_detection.ipynb`)
+
+300 simulated transactions with a log-normal amount distribution. Steers a fraud review queue toward high-value suspicious transactions. MOSAIC captures 4.1x more fraud value in the top-20 and 10.4x more in the auto-block tier — at the same precision. Fraud slipping through the allow tier drops 81%.
+
+### Objective Discovery (`notebooks/objective_discovery.ipynb`)
+
+500 synthetic articles across 7 categories. Tests 7 candidate policies to discover which objectives align with user preferences before deploying. Key finding: quality-based steering is the only policy that achieves both engagement lift AND diversity gain. Forced diversity fights user preference.
+
+---
 
 - **GitHub:** [github.com/rdoku/governed-rank](https://github.com/rdoku/governed-rank)
 - **PyPI:** [pypi.org/project/governed-rank](https://pypi.org/project/governed-rank/)
 - **License:** Apache 2.0
-- **Contact:** ronald@haskelabs.com

@@ -50,7 +50,7 @@ result = govern(
     steering_scores=fairness_boosts,     # positive for underrepresented candidates
     budget=0.3,
 )
-# Fair reranking with auditable receipts. Adverse impact ratio 0.963 on COMPAS.
+# Fair reranking with auditable receipts. See notebooks/demo.ipynb.
 ```
 
 ### RAG Safety — steer retrieval toward grounded, policy-safe documents
@@ -82,16 +82,16 @@ Mathematically: the steering signal is projected into the null space of the base
 
 ## Validated On
 
-17 datasets across 6 domains:
+Reproducible results from the included notebooks:
 
-| Domain | Datasets | Key Metric |
-|--------|----------|------------|
-| Recommendations | Ta Feng, Instacart, RetailRocket, Criteo, MovieLens, Amazon Reviews, Yelp | 0.890 stability @ 0.344 exposure |
-| Fairness | COMPAS, Adult Income, German Credit | adverse_impact_ratio = 0.963 |
-| Healthcare | MIMIC-IV, SynPUF | 71.6% HIGH tier |
-| Content / NLP | AG News, BBC News, Mind News | cross-domain steering |
-| Fraud | IEEE-CIS Fraud | policy-steered detection |
-| Cookieless Targeting | RetailRocket, Criteo | 4.65x CVR lift |
+| Notebook | Domain | Key Result |
+|----------|--------|------------|
+| [`demo.ipynb`](notebooks/demo.ipynb) | Fairness (COMPAS) | AIR 0.773 → 0.916, quality 95% |
+| [`content_moderation.ipynb`](notebooks/content_moderation.ipynb) | Content feeds | Toxicity reduction with smooth budget tradeoff |
+| [`fraud_detection.ipynb`](notebooks/fraud_detection.ipynb) | Fraud review queues | 4.1x fraud value captured, 81% less slippage |
+| [`objective_discovery.ipynb`](notebooks/objective_discovery.ipynb) | Policy selection | Quality steering → engagement AND diversity |
+
+Run any notebook to verify. All use synthetic or public data — no external dependencies.
 
 ## Core Modules
 
